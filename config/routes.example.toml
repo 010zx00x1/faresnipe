@@ -1,12 +1,12 @@
-# Configuracion de ejemplo para detectar pasajes baratos y posibles errores
-# de precio saliendo desde Santiago (SCL) y Buenos Aires (AEP).
+# Example configuration to detect cheap fares and possible mistake fares
+# departing from Santiago (SCL) and Buenos Aires (AEP).
 #
-# Moneda: CLP. Google Flights suele devolver precios en CLP aunque se pida
-# otra moneda, asi que esta es la configuracion realista. Si queres USD,
-# editalo y revisa que el proveedor respete la moneda.
+# Currency: CLP. Google Flights usually returns prices in CLP even when
+# another currency is requested, so this is the realistic configuration.
+# For USD, edit this and verify that the provider respects the currency.
 #
-# Ventana: 7 a 60 dias. La primera corrida muestra oferta real. Subi a
-# 120-180 cuando ya tengas varias semanas de historial.
+# Window: 7 to 60 days. The first run shows real offers. Raise it to
+# 120-180 once you have several weeks of history.
 
 [scanner]
 provider = "google_flights_structured"
@@ -23,11 +23,11 @@ scan_interval_minutes = 30
 scan_jitter_seconds = 60
 
 [detection]
-# Alerta si el precio actual cae al menos 35% contra la mediana historica
-# comparable (mismo mes, misma estadia, ventana de compra similar).
+# Alert when the current price drops at least 35% against the comparable
+# historical median (same month, same stay, similar purchase window).
 discount_ratio = 0.35
-# Filtro de posible error de precio: cae 55% o mas contra la mediana, o
-# por debajo de mistake_fare_below configurado por ruta.
+# Possible mistake fare filter: drops 55% or more against the median, or
+# below the mistake_fare_below threshold configured per route.
 mistake_fare_ratio = 0.55
 min_history_quotes = 4
 history_days = 180
@@ -38,7 +38,7 @@ webhook_url = ""
 telegram_bot_token = ""
 telegram_chat_id = ""
 
-# Regionales
+# Regional routes
 [[routes]]
 origin = "SCL"
 destination = "EZE"
@@ -67,7 +67,7 @@ enabled = true
 max_price = 230000
 mistake_fare_below = 120000
 
-# Larga distancia Americas
+# Long-haul Americas
 [[routes]]
 origin = "SCL"
 destination = "MIA"
@@ -96,7 +96,7 @@ enabled = true
 max_price = 480000
 mistake_fare_below = 280000
 
-# Europa
+# Europe
 [[routes]]
 origin = "SCL"
 destination = "MAD"
@@ -125,7 +125,7 @@ enabled = true
 max_price = 850000
 mistake_fare_below = 500000
 
-# Desde Buenos Aires
+# From Buenos Aires
 [[routes]]
 origin = "AEP"
 destination = "SCL"

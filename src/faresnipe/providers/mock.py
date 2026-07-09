@@ -7,9 +7,9 @@ from decimal import Decimal
 from faresnipe.models import FareQuote, SearchQuery
 
 
-# Tabla de conversion desde "unidades base" (interpretadas como USD
-# a la hora de inventar numeros) hacia la moneda que pida el query.
-# Aproximacion: 1 USD ~= 950 CLP, EUR ~= 1.08 USD, etc.
+# Conversion table from "base units" (treated as USD when inventing numbers)
+# to the currency requested by the query.
+# Approximation: 1 USD ~= 950 CLP, EUR ~= 1.08 USD, etc.
 _USD_TO_CURRENCY = {
     "USD": Decimal("1"),
     "CLP": Decimal("950"),
@@ -27,7 +27,7 @@ class MockFlightProvider:
     name = "mock"
 
     def search(self, query: SearchQuery, max_results: int) -> list[FareQuote]:
-        # Precios base "como si" estuvieran en USD.
+        # Base prices as if they were in USD.
         base = self._base_price(query.origin, query.destination)
         day_factor = Decimal((query.departure_date.toordinal() % 19) - 8)
         stay_factor = Decimal(0)
@@ -46,8 +46,8 @@ class MockFlightProvider:
             price_usd *= Decimal("0.68")
 
         rate = _USD_TO_CURRENCY.get(query.currency, Decimal("1"))
-        # Para monedas con magnitud grande (CLP, ARS, COP) redondeamos a
-        # unidades enteras; para el resto, dos decimales.
+        # For large-magnitude currencies (CLP, ARS, COP), round to whole
+        # units; for the rest, use two decimals.
         if rate >= Decimal("100"):
             quant = Decimal("1")
         else:
@@ -77,7 +77,7 @@ class MockFlightProvider:
         return quotes
 
     def _base_price(self, origin: str, destination: str) -> Decimal:
-        # Precios "base" en USD; arriba se convierten a la currency del query.
+        # Base prices in USD; converted above to the query currency.
         route = f"{origin}-{destination}"
         route_prices = {
             "SCL-EZE": Decimal("230"),

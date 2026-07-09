@@ -1,7 +1,7 @@
-"""Dashboard web para faresnipe (stdlib, sin frameworks).
+"""Web dashboard for faresnipe (stdlib, no frameworks).
 
-El dashboard sólo dispara escaneos manuales desde la UI. El watch continuo lo
-manejan el CLI (``faresnipe --watch``) o systemd, no la UI.
+The dashboard only triggers manual scans from the UI; continuous watch is
+handled by the CLI (``faresnipe --watch``) or systemd, not the UI.
 """
 
 from .server import serve_dashboard

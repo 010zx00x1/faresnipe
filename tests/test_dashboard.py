@@ -148,14 +148,14 @@ class DashboardServerTest(unittest.TestCase):
             self.assertEqual(summary["samples"], 1)
             self.assertEqual(summary["provider_label"], "Mock")
             self.assertFalse(summary["scan_running"])
-            self.assertEqual(summary["scan_mode"], "Manual desde dashboard")
+            self.assertEqual(summary["scan_mode"], "Manual from dashboard")
             self.assertEqual(summary["watch_interval_minutes"], 60)
             self.assertEqual(rows[0]["origin"], "AEP")
             self.assertEqual(rows[0]["origin_name"], "Buenos Aires")
             self.assertEqual(rows[0]["destination"], "SCL")
             self.assertEqual(rows[0]["carrier"], "LATAM")
             self.assertEqual(rows[0]["status_kind"], "deal")
-            self.assertEqual(rows[0]["status_label"], "Buen precio")
+            self.assertEqual(rows[0]["status_label"], "Good price")
             self.assertEqual(rows[0]["quote_type"], "deal")
             self.assertEqual(rows[0]["quote_type_label"], "Deal")
 
@@ -313,9 +313,9 @@ class DashboardServerTest(unittest.TestCase):
             self.assertEqual(rows[0]["origin_name"], "Santiago")
             self.assertTrue(rows[0]["has_price"])
             self.assertFalse(rows[1]["has_price"])
-            # Las rutas sin datos van a la sección "Pendientes" (status interno: unscanned).
+            # Routes without data go to the "Pending" section (internal status: unscanned).
             self.assertEqual(rows[1]["status_kind"], "unscanned")
-            self.assertEqual(rows[1]["status_label"], "Pendiente")
+            self.assertEqual(rows[1]["status_label"], "Pending")
 
     def test_run_scan_exposes_failure_details(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -560,10 +560,10 @@ class DashboardServerTest(unittest.TestCase):
             self.assertEqual(row["max_price"], "700")
             self.assertEqual(row["mistake_fare_below"], "350")
             self.assertEqual(row["currency"], "USD")
-            self.assertIn("bajo mediana", row["opportunity_note"])
-            # El descuento (540-400)/540 = 25.9% cae entre 10% y 35% → "opportunity".
+            self.assertIn("below median", row["opportunity_note"])
+            # The discount (540-400)/540 = 25.9% falls between 10% and 35% -> "opportunity".
             self.assertEqual(row["status_kind"], "opportunity")
-            self.assertEqual(row["status_label"], "Oportunidad")
+            self.assertEqual(row["status_label"], "Opportunity")
 
     def test_opportunities_payload_empty_when_no_history(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -601,7 +601,7 @@ class DashboardServerTest(unittest.TestCase):
 
         normal_row = {"price": "250000", "route_min_price": "200000"}
         self.assertEqual(_classify_row(normal_row, route)["status_kind"], "normal")
-        # Sin precio: normal con label explícito
+        # No price: normal with explicit label.
         self.assertEqual(_classify_row({"price": None}, route)["status_kind"], "normal")
 
 
@@ -610,7 +610,7 @@ if __name__ == "__main__":
     unittest.main()
 
 def _running_server(config: AppConfig):
-    """Levanta el dashboard HTTP en un thread y devuelve la URL base."""
+    """Start the HTTP dashboard in a thread and return the base URL."""
     import socket
     import threading
     from contextlib import contextmanager
@@ -620,7 +620,7 @@ def _running_server(config: AppConfig):
 
     @contextmanager
     def _ctx():
-        # Buscar un puerto libre
+        # Find a free port.
         with socket.socket() as s:
             s.bind(("127.0.0.1", 0))
             port = s.getsockname()[1]

@@ -88,12 +88,11 @@ class NotifierTest(unittest.TestCase):
         self.assertIn("49 USD", text)
         self.assertIn("no baseline yet", text)
 
-    # ---- Canal-aislado: cada canal cae sin romper el resto. ----
+    # ---- Channel isolation: each channel can fail without breaking the rest. ----
 
     def test_webhook_failure_does_not_prevent_telegram_send(self) -> None:
-        """Si el webhook falla, el scan NO debe abortarse: telegram debe
-        seguir recibiendo la alerta. Esto fija el comportamiento del fix
-        de aislamiento de canales en notify.py."""
+        """If the webhook fails, the scan must not abort: Telegram should
+        still receive the alert. This locks in channel-isolation behavior."""
         sent: list[str] = []
 
         def opener(request, timeout):  # type: ignore[no-untyped-def]
@@ -112,10 +111,10 @@ class NotifierTest(unittest.TestCase):
             error_sink=errors.append,
         )
 
-        # No debe lanzar.
+        # Must not raise.
         notifier.send(_alert())
 
-        self.assertEqual(len(sent), 2, "ambos canales debieron ser intentados")
+        self.assertEqual(len(sent), 2, "both channels should have been tried")
         self.assertTrue(any("telegram.org" in u for u in sent))
         self.assertTrue(any("127.0.0.1:1" in u for u in sent))
         self.assertEqual(len(errors), 1)
@@ -149,8 +148,8 @@ class NotifierTest(unittest.TestCase):
         self.assertIn("telegram channel failed", errors[0])
 
     def test_all_channels_failing_does_not_raise(self) -> None:
-        """Si TODOS los canales caen, send() debe volver limpio igual,
-        porque el scanner esta iterando cotizaciones y no puede cortar."""
+        """If all channels fail, send() must still return cleanly because
+        the scanner is iterating through quotes and cannot stop."""
 
         def opener(request, timeout):  # type: ignore[no-untyped-def]
             raise ConnectionError("network down")
@@ -165,8 +164,8 @@ class NotifierTest(unittest.TestCase):
             error_sink=errors.append,
         )
 
-        # La unica excepcion tolerable seria KeyboardInterrupt; cualquier
-        # excepcion del canal debe quedar en errors.
+        # The only tolerable exception would be KeyboardInterrupt; any channel
+        # exception must be captured in errors.
         notifier.send(_alert())
 
         self.assertEqual(len(errors), 2)
@@ -174,7 +173,7 @@ class NotifierTest(unittest.TestCase):
         self.assertTrue(any("telegram channel failed" in e for e in errors))
 
     def test_unconfigured_channels_are_not_called(self) -> None:
-        """Sin webhook ni telegram, send() no debe hacer requests."""
+        """Without webhook or Telegram, send() must not make requests."""
         sent: list[str] = []
 
         def opener(request, timeout):  # type: ignore[no-untyped-def]
@@ -191,8 +190,8 @@ class NotifierTest(unittest.TestCase):
         self.assertEqual(sent, [])
 
     def test_default_error_sink_writes_to_stderr(self) -> None:
-        """Sin error_sink custom, los fallos de canal deben ir a stderr, no
-        contaminar stdout (donde iria la salida del scanner)."""
+        """Without a custom error_sink, channel failures must go to stderr,
+        not pollute stdout where scanner output would go."""
         import io
         import contextlib
 
@@ -202,7 +201,7 @@ class NotifierTest(unittest.TestCase):
             telegram_bot_token="t",
             telegram_chat_id="c",
         )
-        # Sustituir el opener por uno que siempre falla.
+        # Replace the opener with one that always fails.
         notifier.opener = lambda req, timeout: (_ for _ in ()).throw(ConnectionError("net"))
 
         captured_out = io.StringIO()
@@ -215,9 +214,9 @@ class NotifierTest(unittest.TestCase):
         self.assertIn("faresnipe notify: telegram channel failed", captured_err.getvalue())
 
     def test_send_returns_none(self) -> None:
-        """send() debe devolver None y no levantar nada que no sea
-        KeyboardInterrupt / SystemExit. Esto deja a scanner.run_once libre
-        de tener que envolver cada notifier.send()."""
+        """send() must return None and raise nothing except KeyboardInterrupt /
+        SystemExit. This keeps scanner.run_once from having to wrap each
+        notifier.send()."""
         import contextlib
         import io
 

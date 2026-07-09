@@ -1,5 +1,5 @@
-# Configuracion de ejemplo para detectar pasajes baratos y posibles errores
-# de precio usando origenes y destinos curados.
+# Example configuration to detect cheap fares and possible mistake fares
+# using curated origins and destinations.
 
 [scanner]
 provider = "google_flights_structured"
@@ -26,7 +26,7 @@ webhook_url = ""
 telegram_bot_token = ""
 telegram_chat_id = ""
 
-# Definicion de origenes
+# Origin definitions
 [[origins]]
 code = "AEP"
 name = "Buenos Aires"
@@ -64,7 +64,7 @@ default_max_price = 450
 default_mistake_fare_below = 225
 enabled = true
 
-# Overrides por ruta (opcional). Se aplican despues del default del origen.
+# Per-route overrides (optional). Applied after the origin default.
 [[route_thresholds]]
 origin = "AEP"
 destination = "SCL"

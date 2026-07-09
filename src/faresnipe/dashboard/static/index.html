@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,40 +11,40 @@
     <div class="topbar">
       <div class="brand">
         <h1>faresnipe</h1>
-        <p id="statusSubtitle" class="status-subtitle">Cargando estado del vigía...</p>
+        <p id="statusSubtitle" class="status-subtitle">Loading watcher status...</p>
       </div>
       <div class="header-actions">
-        <button id="scanBtn" class="secondary" type="button">Escanear ahora</button>
-        <button id="refreshBtn" type="button">Actualizar</button>
+        <button id="scanBtn" class="secondary" type="button">Scan now</button>
+        <button id="refreshBtn" type="button">Refresh</button>
       </div>
     </div>
   </header>
 
   <main>
-    <section id="originSummary" class="origin-grid" aria-label="Resumen por origen"></section>
+    <section id="originSummary" class="origin-grid" aria-label="Summary by origin"></section>
 
-    <section id="dealBanner" class="deal-banner" aria-label="Ganga del día"></section>
+    <section id="dealBanner" class="deal-banner" aria-label="Deal of the day"></section>
 
     <section class="panel compare-panel">
       <div class="section-head compare-head">
         <div>
-          <h2>Comparar orígenes</h2>
-          <p>Elige destino y fechas para ver desde dónde conviene salir.</p>
+          <h2>Compare origins</h2>
+          <p>Choose a destination and dates to see where it's cheaper to depart from.</p>
         </div>
         <form id="compareForm" class="compare-form">
           <label>
-            Destino
+            Destination
             <input id="compareDestination" type="text" maxlength="3" value="EZE" autocomplete="off">
           </label>
           <label>
-            Ida
+            Departure
             <input id="compareDeparture" type="date">
           </label>
           <label>
-            Vuelta
+            Return
             <input id="compareReturn" type="date">
           </label>
-          <button type="submit">Comparar</button>
+          <button type="submit">Compare</button>
         </form>
       </div>
       <div id="compareResults" class="compare-results"></div>
@@ -53,8 +53,8 @@
     <section class="panel low-prices-panel">
       <div class="section-head">
         <div>
-          <h2>Precios más bajos vistos</h2>
-          <p>Ordenados por precio</p>
+          <h2>Lowest prices seen</h2>
+          <p>Sorted by price</p>
         </div>
       </div>
       <div id="lowestPrices" class="price-list"></div>
@@ -62,7 +62,7 @@
 
     <section class="panel routes-panel">
       <button id="routesToggle" class="accordion-toggle" type="button" aria-expanded="false">
-        Ver las rutas que vigila el bot
+        View the routes watched by the bot
       </button>
       <div id="routesTableWrap" class="routes-table-wrap route-groups" hidden>
         <div id="routeGroups"></div>

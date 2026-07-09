@@ -12,11 +12,11 @@ from .models import DealAlert
 
 
 class Notifier:
-    """Envía alertas por los canales configurados.
+    """Sends alerts through the configured channels.
 
-    Cada canal (consola, webhook, Telegram) se ejecuta de forma aislada: un
-    fallo en uno no impide que los demas reciban la alerta ni rompe el
-    scanner que esta iterando cotizaciones.
+    Each channel (console, webhook, Telegram) runs in isolation: a failure in
+    one channel does not prevent the others from receiving the alert or break
+    the scanner iterating through quotes.
     """
 
     def __init__(
@@ -38,7 +38,7 @@ class Notifier:
     def send(self, alert: DealAlert) -> None:
         payload = self._payload(alert)
         text = format_alert(alert)
-        # Consola: solo se imprime, no deberia fallar, pero igual la protegemos.
+        # Console: print-only and unlikely to fail, but still protected.
         if self.console:
             try:
                 print(text)

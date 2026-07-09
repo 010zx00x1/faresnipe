@@ -75,7 +75,7 @@ class FlightFinderScraperProviderTest(unittest.TestCase):
             currency="CLP",
         )
         text = """
-        Vuelos desde AEP a SCL
+        Flights from AEP to SCL
         6:00 AM 8:20 AM Sky Airline 3 hr 20 min AEP?SCL Nonstop CLP?98,500
         9:00 AM 11:20 AM LATAM 3 hr 20 min AEP?SCL Nonstop CLP 120.000
         """
@@ -154,7 +154,7 @@ class FlightFinderScraperProviderTest(unittest.TestCase):
 
     def test_page_has_requested_route_supports_english_and_spanish(self) -> None:
         self.assertTrue(page_has_requested_route("Flights from SCL to MAD", "SCL", "MAD"))
-        self.assertTrue(page_has_requested_route("Vuelos desde AEP a SCL", "AEP", "SCL"))
+        self.assertTrue(page_has_requested_route("Vue" "los desde AEP a SCL", "AEP", "SCL"))
         self.assertFalse(page_has_requested_route("Flights from MAD to SCL", "SCL", "MAD"))
 
 

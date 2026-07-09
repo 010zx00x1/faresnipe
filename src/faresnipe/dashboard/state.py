@@ -1,7 +1,8 @@
-"""Lógica de payloads y orquestación del dashboard HTTP de faresnipe.
+"""HTTP dashboard payload logic and orchestration for faresnipe.
 
-El dashboard sólo dispara escaneos manuales desde la UI; el watch continuo lo
-maneja el CLI (``faresnipe --watch``) o systemd. No hay thread de auto-scan.
+The dashboard only triggers manual scans from the UI; continuous watch is
+handled by the CLI (``faresnipe --watch``) or systemd. There is no auto-scan
+thread.
 """
 
 from __future__ import annotations
@@ -20,7 +21,7 @@ from ..storage import FareStore
 
 
 class DashboardServer:
-    """Construye los payloads JSON que consume la UI y dispara escaneos manuales."""
+    """Build JSON payloads consumed by the UI and trigger manual scans."""
     def __init__(self, config: AppConfig) -> None:
         self.config = config
         self.store = FareStore(config.scanner.database_path)
@@ -44,7 +45,7 @@ class DashboardServer:
             "latest_observed_at": latest[0]["observed_at"] if latest else None,
             "last_scan": latest_scan,
             "scan_running": self.scan_lock.locked(),
-            "scan_mode": "Manual desde dashboard",
+            "scan_mode": "Manual from dashboard",
             "watch_interval_minutes": s.scan_interval_minutes,
             "watch_jitter_seconds": s.scan_jitter_seconds,
             "request_delay_seconds": s.request_delay_seconds,
@@ -66,7 +67,7 @@ class DashboardServer:
             if origin:
                 routes = tuple(r for r in self.config.routes if r.enabled and r.origin == origin)
                 if not routes:
-                    return {"error": f"No hay rutas configuradas desde {origin}."}
+                    return {"error": f"No routes configured from {origin}."}
                 scan_config = replace(self.config, routes=routes)
             providers = build_providers(provider_names)
             scanner = FlightScanner(config=scan_config, providers=providers, store=self.store, notifier=Notifier(console=False))
@@ -234,9 +235,9 @@ class DashboardServer:
                 "mistake_fare_below": (
                     str(route.mistake_fare_below) if route.mistake_fare_below is not None else None
                 ),
-                "status_kind": "unscanned", "status_label": "Pendiente",
+                "status_kind": "unscanned", "status_label": "Pending",
                 "opportunity_score": "0", "threshold_delta": None, "historical_delta": None,
-                "historical_delta_pct": None, "opportunity_note": "Pendiente de escaneo",
+                "historical_delta_pct": None, "opportunity_note": "Pending scan",
                 "has_price": False, "configured": True, "route_enabled": True, "offers_available": 0,
             })
         return payload
@@ -257,8 +258,8 @@ class DashboardServer:
     ) -> list[dict[str, Any]]:
         return [_scan_failure_payload(row) for row in self.store.scan_failures(run_id, limit)]
     def opportunities_payload(self) -> list[dict[str, Any]]:
-        """Top oportunidades (discount vs mediana). 3 estados: ``mistake`` /
-        ``deal`` / ``opportunity`` (este último para 10% ≤ d < discount_ratio)."""
+        """Top opportunities (discount vs. median). Three states: ``mistake`` /
+        ``deal`` / ``opportunity`` (the latter for 10% <= d < discount_ratio)."""
         s, d = self.config.scanner, self.config.detection
         rows = self.store.top_opportunities(
             limit=20, min_discount=Decimal("0.10"),
@@ -272,15 +273,15 @@ class DashboardServer:
             item["provider_label"] = _provider_label(str(item.get("provider") or ""))
             discount = Decimal(str(item["discount_ratio"]))
             if discount >= d.mistake_fare_ratio:
-                item["status_kind"] = "mistake"; item["status_label"] = "Posible error"
+                item["status_kind"] = "mistake"; item["status_label"] = "Possible mistake"
             elif discount >= d.discount_ratio:
-                item["status_kind"] = "deal"; item["status_label"] = "Buen precio"
+                item["status_kind"] = "deal"; item["status_label"] = "Good price"
             else:
-                item["status_kind"] = "opportunity"; item["status_label"] = "Oportunidad"
+                item["status_kind"] = "opportunity"; item["status_label"] = "Opportunity"
             item["opportunity_score"] = str((discount * Decimal("100")).quantize(Decimal("0.1")))
             median_value = int(Decimal(item["median_price"]))
             median_formatted = f"{median_value:,}".replace(",", ".")
-            item["opportunity_note"] = f"{item['discount_pct']} bajo mediana ({median_formatted} {item['currency']}, n={item['baseline_count']})"
+            item["opportunity_note"] = f"{item['discount_pct']} below median ({median_formatted} {item['currency']}, n={item['baseline_count']})"
             route = route_config.get(_route_key(item["origin"], item["destination"]))
             item["origin_name"] = self._origin_name(str(item.get("origin") or ""))
             if route and route.max_price is not None:
@@ -483,34 +484,34 @@ def _scan_status(searches: int, failures: int) -> str:
 
 
 def _classify_row(row: dict[str, Any], route: Any) -> dict[str, Any]:
-    """Clasificación determinística sin score mágico. Reglas (en orden):
-    ``max_price``/``mistake_fare_below`` → ``deal``; nuevo mínimo histórico
-    → ``deal``; si no, ``normal``. ``mistake`` queda reservado para alertas
-    persistidas o descuentos contra mediana histórica."""
+    """Deterministic classification with no magic score. Rules (in order):
+    ``max_price``/``mistake_fare_below`` -> ``deal``; new historical minimum
+    -> ``deal``; otherwise ``normal``. ``mistake`` is reserved for persisted
+    alerts or discounts against the historical median."""
     price = _decimal_or_none(row.get("price"))
     if price is None:
-        return _empty_classification("Sin precio", "Sin precio usable")
+        return _empty_classification("No price", "No usable price")
     threshold_delta: Decimal | None = None
     historical_delta: Decimal | None = None
     historical_delta_pct: Decimal | None = None
-    note = "Precio normal"
+    note = "Normal price"
     status_kind, status_label, score = "normal", "Normal", Decimal("0")
     if route and route.mistake_fare_below is not None and price <= route.mistake_fare_below:
         threshold_delta = route.mistake_fare_below - price
-        status_kind, status_label, score = "deal", "Buen precio", Decimal("50")
-        note = f"{_format_decimal(threshold_delta)} bajo umbral fuerte"
+        status_kind, status_label, score = "deal", "Good price", Decimal("50")
+        note = f"{_format_decimal(threshold_delta)} below strong threshold"
     elif route and route.max_price is not None and price <= route.max_price:
         threshold_delta = route.max_price - price
-        status_kind, status_label, score = "deal", "Buen precio", Decimal("50")
-        note = f"{_format_decimal(threshold_delta)} bajo umbral"
+        status_kind, status_label, score = "deal", "Good price", Decimal("50")
+        note = f"{_format_decimal(threshold_delta)} below threshold"
     else:
         min_price = _decimal_or_none(row.get("route_min_price"))
         if min_price is not None and min_price > 0:
             historical_delta = min_price - price
             historical_delta_pct = (historical_delta / min_price) * Decimal("100")
             if price <= min_price:
-                status_kind, status_label, score = "deal", "Buen precio", Decimal("20")
-                note = "Nuevo mínimo observado"
+                status_kind, status_label, score = "deal", "Good price", Decimal("20")
+                note = "New observed minimum"
     return {
         "status_kind": status_kind, "status_label": status_label,
         "opportunity_score": str(score.quantize(Decimal("1"))),

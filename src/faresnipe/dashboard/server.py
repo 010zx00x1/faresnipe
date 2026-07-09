@@ -1,4 +1,4 @@
-"""Servidor HTTP del dashboard de faresnipe (stdlib, sin frameworks)."""
+"""HTTP dashboard server for faresnipe (stdlib, no frameworks)."""
 
 from __future__ import annotations
 
@@ -198,7 +198,7 @@ def _build_handler(state: DashboardServer) -> type[BaseHTTPRequestHandler]:
 
 
 def _safe_static_path(name: str) -> Path | None:
-    """Resuelve una ruta bajo ``STATIC_DIR`` sin permitir path traversal."""
+    """Resolve a path under ``STATIC_DIR`` without allowing path traversal."""
     clean = name.lstrip("/")
     if ".." in Path(clean).parts:
         return None

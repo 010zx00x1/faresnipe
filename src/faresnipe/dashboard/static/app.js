@@ -72,7 +72,7 @@ function destinationLabel(code) {
 
 function formatPrice(value, currency = 'CLP') {
   const n = Number(value);
-  if (!Number.isFinite(n)) return 'Sin precio';
+  if (!Number.isFinite(n)) return 'No price';
   return `$${Math.round(n).toLocaleString('es-CL')} ${currency || 'CLP'}`.trim();
 }
 
@@ -94,16 +94,16 @@ function formatTime(date) {
 
 function formatRelative(isoDate) {
   const date = parseDate(isoDate);
-  if (!date) return 'Sin datos aún';
+  if (!date) return 'No data yet';
   const now = new Date();
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
-  if (sameLocalDay(date, now)) return `hoy ${formatTime(date)}`;
-  if (sameLocalDay(date, yesterday)) return `ayer ${formatTime(date)}`;
+  if (sameLocalDay(date, now)) return `today ${formatTime(date)}`;
+  if (sameLocalDay(date, yesterday)) return `yesterday ${formatTime(date)}`;
   const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const days = Math.max(1, Math.round((startToday - startDate) / 86400000));
-  return `hace ${days} días ${formatTime(date)}`;
+  return `${days} days ago ${formatTime(date)}`;
 }
 
 function quoteType(row) {
@@ -153,17 +153,17 @@ function renderHeader(summary) {
   const status = statusFromSummary(summary);
   const startedAt = lastScanStartedAt(summary);
   const date = parseDate(startedAt);
-  let text = '🟠 Vigía sin escaneo hoy · último: sin datos';
+  let text = '🟠 Watcher has not scanned today · last: no data';
 
   if (status === 'off') {
-    text = '🔴 Vigía apagado · systemctl start faresnipe';
+    text = '🔴 Watcher off · systemctl start faresnipe';
   } else if (status === 'running') {
     const mins = minutesSince(startedAt);
-    text = `🟢 Vigía activo · último escaneo hace ${mins === null ? 0 : mins} min`;
+    text = `🟢 Watcher active · last scan ${mins === null ? 0 : mins} min ago`;
   } else if (status === 'today' && date) {
-    text = `🟡 Vigía activo · último escaneo hoy ${formatTime(date)}`;
+    text = `🟡 Watcher active · last scan today ${formatTime(date)}`;
   } else if (date) {
-    text = `🟠 Vigía sin escaneo hoy · último: ${formatRelative(startedAt)}`;
+    text = `🟠 Watcher has not scanned today · last: ${formatRelative(startedAt)}`;
   }
 
   $('statusSubtitle').textContent = text;
@@ -209,11 +209,11 @@ function renderOriginSummary() {
     const latest = latestObservedForOrigin(code);
     return `
       <article class="origin-card">
-        <h2>Salidas desde ${origin.name || code}</h2>
+        <h2>Departures from ${origin.name || code}</h2>
         <p class="airport-code">${code}</p>
-        <p class="route-count">${count} ruta${count === 1 ? '' : 's'} vigilada${count === 1 ? '' : 's'}</p>
-        <p><span>Último precio visto:</span> ${latest ? formatRelative(latest.toISOString()) : 'Sin datos aún'}</p>
-        <p><span>Moneda:</span> ${state.config.scanner.currency || 'CLP'}</p>
+        <p class="route-count">${count} watched route${count === 1 ? '' : 's'}</p>
+        <p><span>Last price seen:</span> ${latest ? formatRelative(latest.toISOString()) : 'No data yet'}</p>
+        <p><span>Currency:</span> ${state.config.scanner.currency || 'CLP'}</p>
       </article>`;
   }).join('');
 }
@@ -223,8 +223,8 @@ function renderDealBanner() {
   if (!deal || (deal.status_kind !== 'deal' && deal.status_kind !== 'mistake')) {
     $('dealBanner').className = 'deal-banner no-deal';
     $('dealBanner').innerHTML = `
-      <h2>No hay ofertas hoy.</h2>
-      <p>Con un solo día de datos no se puede calcular la mediana histórica. El vigía necesita correr varios días para empezar a detectar gangas.</p>`;
+      <h2>No deals today.</h2>
+      <p>With only one day of data the historical median cannot be computed. The watcher needs to run for several days before it can start detecting deals.</p>`;
     return;
   }
 
@@ -234,16 +234,16 @@ function renderDealBanner() {
   $('dealBanner').className = `deal-banner ${kind}`;
   $('dealBanner').innerHTML = `
     <div class="deal-copy">
-      <p class="eyebrow">Ganga del día</p>
+      <p class="eyebrow">Deal of the day</p>
       <h2>${deal.origin} → ${destinationLabel(deal.destination)}</h2>
       <div class="deal-price">${formatPrice(deal.price, deal.currency)}</div>
-      ${deal.median_price ? `<p>antes ~${formatPrice(deal.median_price, deal.currency)} (mediana histórica)</p>` : ''}
-      ${pct ? `<p class="discount">${pct} más barato</p>` : ''}
+      ${deal.median_price ? `<p>was ~${formatPrice(deal.median_price, deal.currency)} (historical median)</p>` : ''}
+      ${pct ? `<p class="discount">${pct} cheaper</p>` : ''}
       ${quoteBadge(deal)}
-      <p class="detected">Detectado a las ${parseDate(deal.observed_at) ? formatTime(parseDate(deal.observed_at)) : '--:--'}</p>
-      <p class="deal-rule">Ganga del día = mayor descuento vs. mediana histórica.</p>
+      <p class="detected">Detected at ${parseDate(deal.observed_at) ? formatTime(parseDate(deal.observed_at)) : '--:--'}</p>
+      <p class="deal-rule">Deal of the day = largest discount vs. historical median.</p>
     </div>
-    <a class="primary-action" href="${bookingUrl}" target="_blank" rel="noreferrer">Abrir en Google Flights</a>`;
+    <a class="primary-action" href="${bookingUrl}" target="_blank" rel="noreferrer">Open in Google Flights</a>`;
 }
 
 function pricedRoutes() {
@@ -256,7 +256,7 @@ function pricedRoutes() {
 function renderLowestPrices() {
   const rows = pricedRoutes();
   if (rows.length < 3) {
-    $('lowestPrices').innerHTML = `<div class="empty">Solo ${rows.length} ruta${rows.length === 1 ? '' : 's'} con precio. Necesitamos más días de escaneo.</div>`;
+    $('lowestPrices').innerHTML = `<div class="empty">Only ${rows.length} route${rows.length === 1 ? '' : 's'} priced. We need more days of scanning.</div>`;
     return;
   }
 
@@ -264,20 +264,20 @@ function renderLowestPrices() {
     <div class="price-row">
       <div class="route">${row.origin} → ${row.destination}</div>
       <div class="price">${formatPrice(row.price, row.currency)}</div>
-      <div class="seen">${quoteBadge(row)} visto ${formatRelative(row.observed_at)}</div>
-      <a href="${row.booking_url || GOOGLE_FLIGHTS_URL}" target="_blank" rel="noreferrer">Abrir ↗</a>
+      <div class="seen">${quoteBadge(row)} seen ${formatRelative(row.observed_at)}</div>
+      <a href="${row.booking_url || GOOGLE_FLIGHTS_URL}" target="_blank" rel="noreferrer">Open ↗</a>
     </div>`).join('');
 }
 
 function routeState(row) {
-  if (!row.has_price && Number(row.route_samples || 0) > 0) return 'Vigilar';
-  if (row.has_price) return 'Visto';
-  return 'Sin escanear';
+  if (!row.has_price && Number(row.route_samples || 0) > 0) return 'Watch';
+  if (row.has_price) return 'Seen';
+  return 'Unscanned';
 }
 
 function renderRoutesTable() {
   const rows = state.routes.filter((row) => !isMock(row));
-  $('routesToggle').textContent = `Ver las ${rows.length} rutas que vigila el bot`;
+  $('routesToggle').textContent = `View the ${rows.length} routes watched by the bot`;
   const rowsByOrigin = rows.reduce((acc, row) => {
     (acc[row.origin] ||= []).push(row);
     return acc;
@@ -291,23 +291,23 @@ function renderRoutesTable() {
       <details class="route-origin" ${index === 0 ? 'open' : ''}>
         <summary>
           <span>${origin.name || code} <strong>${code}</strong></span>
-          <span>${originRows.length} rutas · ${withData} con datos</span>
+          <span>${originRows.length} routes · ${withData} with data</span>
         </summary>
         <table>
           <thead>
             <tr>
-              <th>Ruta</th>
-              <th>Último precio</th>
-              <th>Visto</th>
-              <th>Estado</th>
+              <th>Route</th>
+              <th>Last price</th>
+              <th>Seen</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
             ${originRows.map((row) => `
               <tr>
                 <td>${row.origin} → ${destinationLabel(row.destination)}</td>
-                <td>${row.has_price ? formatPrice(row.price, row.currency) : 'Sin precio'}</td>
-                <td>${row.observed_at ? formatRelative(row.observed_at) : 'Sin datos aún'}</td>
+                <td>${row.has_price ? formatPrice(row.price, row.currency) : 'No price'}</td>
+                <td>${row.observed_at ? formatRelative(row.observed_at) : 'No data yet'}</td>
                 <td>${row.has_price ? `${quoteBadge(row)} ${routeState(row)}` : routeState(row)}</td>
               </tr>`).join('')}
           </tbody>
@@ -319,17 +319,17 @@ function renderRoutesTable() {
 function renderCompareResults() {
   const rows = state.compareRows || [];
   if (!rows.length) {
-    $('compareResults').innerHTML = '<div class="empty">Sin comparación cargada.</div>';
+    $('compareResults').innerHTML = '<div class="empty">No comparison loaded.</div>';
     return;
   }
   $('compareResults').innerHTML = `
     <table>
       <thead>
         <tr>
-          <th>Origen</th>
-          <th>Mejor precio</th>
-          <th>Aerolínea</th>
-          <th>Muestras</th>
+          <th>Origin</th>
+          <th>Best price</th>
+          <th>Airline</th>
+          <th>Samples</th>
           <th>Link</th>
         </tr>
       </thead>
@@ -337,10 +337,10 @@ function renderCompareResults() {
         ${rows.map((row) => `
           <tr>
             <td>${row.origin_name || row.origin} (${row.origin})</td>
-            <td>${row.cheapest_price ? formatPrice(row.cheapest_price, row.currency) : 'Sin datos'}</td>
+            <td>${row.cheapest_price ? formatPrice(row.cheapest_price, row.currency) : 'No data'}</td>
             <td>${row.cheapest_carrier || '-'}</td>
             <td>${row.samples || 0}</td>
-            <td>${row.cheapest_booking_url ? `<a href="${row.cheapest_booking_url}" target="_blank" rel="noreferrer">Abrir ↗</a>` : '-'}</td>
+            <td>${row.cheapest_booking_url ? `<a href="${row.cheapest_booking_url}" target="_blank" rel="noreferrer">Open ↗</a>` : '-'}</td>
           </tr>`).join('')}
       </tbody>
     </table>`;
@@ -349,7 +349,7 @@ function renderCompareResults() {
 async function compareOrigins() {
   const destination = $('compareDestination').value.trim().toUpperCase();
   if (!destination) {
-    $('compareResults').innerHTML = '<div class="empty">Ingresa un destino.</div>';
+    $('compareResults').innerHTML = '<div class="empty">Enter a destination.</div>';
     return;
   }
   $('compareDestination').value = destination;
@@ -401,7 +401,7 @@ function setPageStatus(message, kind = '') {
 }
 
 async function refreshAll() {
-  setPageStatus('Actualizando...');
+  setPageStatus('Refreshing...');
   await Promise.all([loadSummary(), loadConfig(), loadRoutes(), loadOpportunities()]);
   renderAll();
   setPageStatus('');
@@ -410,8 +410,8 @@ async function refreshAll() {
 async function scanNow() {
   const button = $('scanBtn');
   button.disabled = true;
-  button.textContent = 'Escaneando...';
-  setPageStatus('Escaneando...');
+  button.textContent = 'Scanning...';
+  setPageStatus('Scanning...');
   try {
     await api('/api/scan', {
       method: 'POST',
@@ -422,7 +422,7 @@ async function scanNow() {
     setPageStatus('');
   } finally {
     button.disabled = false;
-    button.textContent = 'Escanear ahora';
+    button.textContent = 'Scan now';
   }
 }
 
