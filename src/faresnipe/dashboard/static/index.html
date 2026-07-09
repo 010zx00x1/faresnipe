@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>faresnipe</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="topbar">
+      <div class="brand">
+        <h1>faresnipe</h1>
+        <p id="statusSubtitle" class="status-subtitle">Cargando estado del vigía...</p>
+      </div>
+      <div class="header-actions">
+        <button id="scanBtn" class="secondary" type="button">Escanear ahora</button>
+        <button id="refreshBtn" type="button">Actualizar</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="originSummary" class="origin-grid" aria-label="Resumen por origen"></section>
+
+    <section id="dealBanner" class="deal-banner" aria-label="Ganga del día"></section>
+
+    <section class="panel compare-panel">
+      <div class="section-head compare-head">
+        <div>
+          <h2>Comparar orígenes</h2>
+          <p>Elige destino y fechas para ver desde dónde conviene salir.</p>
+        </div>
+        <form id="compareForm" class="compare-form">
+          <label>
+            Destino
+            <input id="compareDestination" type="text" maxlength="3" value="EZE" autocomplete="off">
+          </label>
+          <label>
+            Ida
+            <input id="compareDeparture" type="date">
+          </label>
+          <label>
+            Vuelta
+            <input id="compareReturn" type="date">
+          </label>
+          <button type="submit">Comparar</button>
+        </form>
+      </div>
+      <div id="compareResults" class="compare-results"></div>
+    </section>
+
+    <section class="panel low-prices-panel">
+      <div class="section-head">
+        <div>
+          <h2>Precios más bajos vistos</h2>
+          <p>Ordenados por precio</p>
+        </div>
+      </div>
+      <div id="lowestPrices" class="price-list"></div>
+    </section>
+
+    <section class="panel routes-panel">
+      <button id="routesToggle" class="accordion-toggle" type="button" aria-expanded="false">
+        Ver las rutas que vigila el bot
+      </button>
+      <div id="routesTableWrap" class="routes-table-wrap route-groups" hidden>
+        <div id="routeGroups"></div>
+      </div>
+    </section>
+
+    <div id="pageStatus" class="page-status" role="status"></div>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

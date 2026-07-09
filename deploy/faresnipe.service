@@ -1,0 +1,16 @@
+[Unit]
+Description=faresnipe flight fare scanner
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ubuntu/Escritorio/price
+Environment=FARESNIPE_SCRAPER_SETTLE_SECONDS=12
+ExecStart=/home/ubuntu/Escritorio/price/.venv/bin/python -m faresnipe --config config/google-scraper-production.toml --watch
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
+
